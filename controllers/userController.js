@@ -10,11 +10,11 @@ export const getUsers = async (req,res) => {
     }
 }
 
-export const getUserByEmail = async (req, res) => {
+export const getUserById = async (req, res) => {
     try {
         const response = await user.findOne({
             where:{
-                email: req.params.email
+                email: req.params.id
             }
         });
         res.status(200).json(response)
