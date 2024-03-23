@@ -45,15 +45,15 @@ export const loginUser = async (req, res) => {
         const { email, password } = req.body;
 
         // Cari pengguna berdasarkan email
-        const user = await user.findOne({ where: { email } });
+        const users = await user.findOne({ where: { email } });
 
         // Jika pengguna tidak ditemukan
-        if (!user) {
+        if (!users) {
             return res.status(404).json({ msg: 'Email not found' });
         }
 
         // Verifikasi kata sandi
-        const isPasswordValid = await bcrypt.compare(password, user.password);
+        const isPasswordValid = await bcrypt.compare(password, users.password);
 
         // Jika kata sandi tidak cocok
         if (!isPasswordValid) {
