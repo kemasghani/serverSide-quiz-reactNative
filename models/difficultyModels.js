@@ -10,7 +10,10 @@ const Difficulty = db.define('Difficulty', {
         type: DataTypes.TEXT
     }
 }, {
-    timestamps: false
+    timestamps: false,
+    tableName: "difficulty"
 });
+
+Difficulty.sync()
 
 export default Difficulty;

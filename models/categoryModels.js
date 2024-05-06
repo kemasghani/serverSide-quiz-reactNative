@@ -15,9 +15,5 @@ const Category = db.define('Category', {
     timestamps: false
 });
 
-
-// Sinkronisasi model dengan basis data (opsional)
-Category.sync();
-
 // Export model Category
 export default Category;
