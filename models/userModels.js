@@ -1,19 +1,23 @@
 import { DataTypes, Sequelize } from "sequelize";
 import db from '../config/database.js';
 
-const {DataTyoes} = Sequelize;
-
-const user = db.define('users',{
+const user = db.define('users', {
     username: DataTypes.STRING,
     email: DataTypes.STRING,
     password: DataTypes.STRING
-
-},{
-    freezeTableName:true
+}, {
+    freezeTableName: true
 });
 
-export default user;
+const syncDB = async () => {
+    try {
+        await db.sync();
+        console.log('Database synchronized successfully.');
+    } catch (error) {
+        console.error('Error synchronizing database:', error);
+    }
+};
 
-(async() => {
-    await db.sync();
-})();
+syncDB();
+
+export default user;

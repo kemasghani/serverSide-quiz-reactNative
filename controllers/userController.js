@@ -1,70 +1,63 @@
-import user from '../models/userModels.js'
+import user from '../models/userModels.js';
 import bcrypt from 'bcrypt';
 
-export const getUsers = async (req,res) => {
+export const getUsers = async (req, res) => {
     try {
         const response = await user.findAll();
-        res.status(200).json(response)
+        res.status(200).json(response);
     } catch (error) {
-        console.log(error.message)
+        console.error(error.message);
+        res.status(500).json({ msg: "Server error" });
     }
-}
+};
 
 export const getUserById = async (req, res) => {
     try {
         const response = await user.findOne({
-            where:{
+            where: {
                 id: req.params.id
             }
         });
-        res.status(200).json(response)
+        if (!response) {
+            return res.status(404).json({ msg: "User not found" });
+        }
+        res.status(200).json(response);
     } catch (error) {
-        console.log(error.message)
+        console.error(error.message);
+        res.status(500).json({ msg: "Server error" });
     }
-}
+};
 
 export const createUser = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const {username, email, password } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = await user.create({
+            username: username,
             email: email,
             password: hashedPassword
         });
         res.status(201).json({ msg: "User created successfully" });
-
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
         res.status(500).json({ msg: "Server error" });
     }
-}
-
+};
 
 export const loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
-
-        // Cari pengguna berdasarkan email
-        const users = await user.findOne({ where: { email } });
-
-        // Jika pengguna tidak ditemukan
-        if (!users) {
+        const foundUser = await user.findOne({ where: { email } });
+        if (!foundUser) {
             return res.status(404).json({ msg: 'Email not found' });
         }
-
-        // Verifikasi kata sandi
-        const isPasswordValid = await bcrypt.compare(password, users.password);
-
-        // Jika kata sandi tidak cocok
+        const isPasswordValid = await bcrypt.compare(password, foundUser.password);
         if (!isPasswordValid) {
             return res.status(401).json({ msg: 'Invalid password' });
         }
-
-        // Jika email dan kata sandi cocok, kirim balasan berhasil
         res.status(200).json({ msg: 'Login successful' });
-
     } catch (error) {
-        console.log(error.message);
+        console.error(error.message);
         res.status(500).json({ msg: 'Server error' });
     }
-}
+};
