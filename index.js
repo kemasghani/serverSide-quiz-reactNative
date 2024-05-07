@@ -1,24 +1,15 @@
-import express from "express";
-import cors from "cors";
-import userRoute from './routes/userRoute.js';
-import categoryRoute from './routes/categoryRoute.js';
-import difficultyRoute from './routes/difficultyRoute.js';
-import packageRoute from './routes/packageRoute.js';
-
+const express = require('express');
+const cors = require('cors');
 const app = express();
-app.use(cors());
+const router = require('./routes');
+
+
 app.use(express.json());
+app.use(cors())
+app.use(router);
 
-// Gunakan routing untuk kategori
-app.use(categoryRoute);
-
-// Gunakan routing untuk pengguna
-app.use(userRoute);
-
-// Gunakan routing untuk tingkat kesulitan
-app.use(difficultyRoute);
-
-// Gunakan routing untuk paket soal
-app.use(packageRoute);
-
-app.listen(5000, () => console.log('Server up and running...'));
+// Start the server
+const PORT = process.env.PORT;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});

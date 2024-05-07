@@ -1,4 +1,4 @@
-import Package from '../models/packageModels.js';
+const { Package } = require('../models');
 
 // Controller untuk mendapatkan daftar paket
 export const getPackage = async (req, res) => {

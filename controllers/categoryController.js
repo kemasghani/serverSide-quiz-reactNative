@@ -1,4 +1,4 @@
-import Category from '../models/categoryModels.js';
+const { Category } = require('../models');
 
 // Controller untuk mendapatkan daftar kategori
 export const getCategories = async (req, res) => {
