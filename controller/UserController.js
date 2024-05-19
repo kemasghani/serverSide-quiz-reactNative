@@ -35,6 +35,8 @@ exports.registerUser = async (req, res) => {
       username,
       email,
       password,
+      umur,
+      domisili
     });
     res.status(201).json({
       message: "User created successfully",
