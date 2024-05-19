@@ -1,15 +1,20 @@
-const express = require('express');
-const cors = require('cors');
+const express = require("express");
+const mongoose = require("mongoose");
+
 const app = express();
-const router = require('./routes');
+const routes = require("./routes");
 
-
+// Middleware to parse JSON
 app.use(express.json());
-app.use(cors())
-app.use(router);
 
-// Start the server
-const PORT = process.env.PORT;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Connect to MongoDB
+mongoose.connect(
+  "mongodb+srv://smarta:KjG9CgMMUARdMPSt@smarta.nce9kp1.mongodb.net/"
+);
+
+// Use routes
+app.use("/", routes);
+
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
 });
