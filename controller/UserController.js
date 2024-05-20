@@ -26,21 +26,26 @@ exports.loginUser = async (req, res) => {
 //register user
 exports.registerUser = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    const user = await User.findOne({ email: email });
-    if (user) {
+    const { username, email, password, umur, domisili } = req.body;
+
+    // Check if a user with the given email already exists
+    const existingUser = await User.findOne({ email: email });
+    if (existingUser) {
       return res.status(400).json({ error: "User already exists" });
     }
-    await User.create({
+
+    // Create the new user
+    const newUser = await User.create({
       username,
       email,
       password,
       umur,
-      domisili
+      domisili,
     });
+
     res.status(201).json({
       message: "User created successfully",
-      data: { username: user.username, email: email },
+      data: { username: newUser.username, email: email },
     });
   } catch (error) {
     console.error("Error registering user:", error);
@@ -48,7 +53,6 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// Function to find all users
 exports.findAllUsers = async (req, res) => {
   try {
     const users = await User.find({});
@@ -59,51 +63,103 @@ exports.findAllUsers = async (req, res) => {
   }
 };
 
-// Function to generate a random 8-digit code
 function generateRandomCode() {
-  return Math.floor(10000000 + Math.random() * 90000000);
+  return Math.floor(1000 + Math.random() * 9000);
 }
-
 // Function to send email
-exports.sendEmail = async (req, res) => {
+exports.sendOtpToEmail = async (req, res) => {
   try {
-    const { userEmail, name } = req.body;
+    const { email } = req.body;
+    // Find the user with the provided email
+    const user = await User.findOne({ email: email });
 
+    if (!user) {
+      return res.status(404).json({ error: "Email tidak ditemukan" });
+    }
     // Generate a random 8-digit code
     const verificationCode = generateRandomCode();
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "finavalenn1402@gmail.com",
-        pass: "yvdf loyg xgmz nwll",
+        user: "kemasghani123@gmail.com",
+        pass: "axdo pzzd hkrc hfrl",
       },
     });
 
     // Construct the email message
-    const message = `Email Anda sudah terdaftar sebagai mitra. Silahkan login menggunakan email dan kode verifikasi dibawah ini:\n\nEmail: ${userEmail}\nKode: ${verificationCode}`;
+    const message = `SMARTA\n\n\n\Jangan berikan kode OTP kepada siapapun\n\Kode OTP: ${verificationCode}`;
 
     const mailOptions = {
-      from: "finavalenn1402@gmail.com",
-      to: userEmail,
-      subject: "Selamat datang mitra kami",
+      from: "kemasghani123@gmail.com",
+      to: email,
+      subject: "Kode OTP",
       text: message,
     };
 
     // Send email
     const info = await transporter.sendMail(mailOptions);
 
-    // Save user to the database
-    await User.create({
-      username: name,
-      email: userEmail,
-      password: verificationCode,
-    });
-
     console.log("Email sent:", info.response);
-    res.status(200).json({ message: "Email sent successfully" });
+
+    // Update the user's data with the OTP
+    const updatedUser = await User.findOneAndUpdate(
+      { email: email },
+      { otp: verificationCode },
+      { new: true }
+    );
+
+    res.status(200).json({ message: "Email sent successfully", updatedUser });
   } catch (error) {
     console.error("Error sending email:", error);
     res.status(500).json({ error: "Error sending email" });
+  }
+};
+
+exports.submitOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    // Find the user with the provided email
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Check if the user's OTP matches the provided OTP
+    if (user.otp !== otp) {
+      return res.status(401).json({ error: "Kode OTP salah" });
+    }
+
+    // OTP is valid, you can proceed with further actions
+    // For example, reset the user's password or perform any other operation
+
+    res.status(200).json({ message: "OTP verified successfully" });
+  } catch (error) {
+    console.error("Error submitting OTP:", error);
+    res.status(500).json({ error: "Error submitting OTP" });
+  }
+};
+
+exports.changePass = async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    // Find the user with the provided email
+    const user = await User.findOne({ email: email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Update the user's password
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (error) {
+    console.error("Error changing password:", error);
+    res.status(500).json({ error: "Error changing password" });
   }
 };
