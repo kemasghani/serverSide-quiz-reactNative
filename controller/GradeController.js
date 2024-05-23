@@ -30,12 +30,6 @@ exports.findGradeByUserId = async (req, res) => {
     const userId = req.params.id;
     const grades = await Grade.find({ userId: userId });
 
-    if (!grades || grades.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "No grades found for the specified user" });
-    }
-
     res.status(200).json(grades);
   } catch (error) {
     console.error("Error getting grades:", error);
