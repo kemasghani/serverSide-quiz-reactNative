@@ -163,3 +163,49 @@ exports.changePass = async (req, res) => {
     res.status(500).json({ error: "Error changing password" });
   }
 };
+
+//update user
+exports.updateUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const { email } = req.body;
+
+    // Check if the edited email already exists in the database
+    const existingUser = await User.findOne({ email: email });
+    if (existingUser && existingUser._id.toString() !== userId) {
+      return res.status(400).json({ error: "Email already exists" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
+      new: true,
+    });
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({ error: "Error updating user" });
+  }
+};
+
+//find by id
+exports.findUserById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.find({ _id: userId });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("Error getting user:", error);
+    res
+      .status(500)
+      .json({ error: "Internal server error while retrieving user" });
+  }
+};

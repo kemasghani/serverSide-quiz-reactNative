@@ -5,7 +5,9 @@ const {
   loginUser,
   registerUser,
   submitOtp,
-  changePass
+  changePass,
+  updateUser,
+  findUserById,
 } = require("../controller/UserController");
 const router = express.Router();
 
@@ -16,5 +18,7 @@ router.post("/otp", sendOtpToEmail);
 router.post("/submit-otp", submitOtp);
 router.post("/change-pass", changePass);
 router.get("/", findAllUsers);
+router.get("/:id", findUserById);
+router.put("/:id", updateUser);
 
 module.exports = router;
