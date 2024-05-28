@@ -106,3 +106,17 @@ exports.deleteGrade = async (req, res) => {
   }
 };
 // Path: models/Grade.js
+
+//delete by id
+exports.deleteGrade = async (req, res) => {
+  try {
+    const deletedGrade = await Grade.findByIdAndDelete(req.params.id);
+    if (!deletedGrade) {
+      return res.status(404).json({ error: "Grade not found" });
+    }
+    res.json(deletedGrade);
+  } catch (error) {
+    console.error("Error deleting grade:", error);
+    res.status(500).json({ error: "Error deleting grade" });
+  }
+};
