@@ -210,18 +210,27 @@ exports.findUserById = async (req, res) => {
   }
 };
 
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.API_KEY,
+  api_secret: process.env.API_SECRET,
+});
+
 exports.uploadAvatar = async (req, res) => {
   try {
     const userId = req.params.id;
+    const file = req.file;
     console.log("userId", userId);
-    const avatarFileName = req.file.filename; // Extract the filename from multer
-    console.log("avatarFileName", avatarFileName);
-    const avatarPath = `${avatarFileName}`; // Construct the relative path
 
-    // Find the user and update the avatar field
+    // Upload image to Cloudinary
+    const result = await cloudinary.uploader.upload(file.path);
+
+    // Update user's avatar field with Cloudinary URL
     const user = await User.findByIdAndUpdate(
       userId,
-      { avatar: avatarPath },
+      { avatar: result.secure_url },
       { new: true }
     );
 
