@@ -209,3 +209,29 @@ exports.findUserById = async (req, res) => {
       .json({ error: "Internal server error while retrieving user" });
   }
 };
+
+exports.uploadAvatar = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    console.log("userId", userId);
+    const avatarFileName = req.file.filename; // Extract the filename from multer
+    console.log("avatarFileName", avatarFileName);
+    const avatarPath = `${avatarFileName}`; // Construct the relative path
+
+    // Find the user and update the avatar field
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { avatar: avatarPath },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "Avatar uploaded successfully", user });
+  } catch (error) {
+    console.error("Error uploading avatar", error);
+    res.status(500).json({ message: "Error uploading avatar", error });
+  }
+};

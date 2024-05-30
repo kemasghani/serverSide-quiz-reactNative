@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema({
   domisili: String,
   password: String,
   otp: String,
+  avatar: String, // Field to store avatar URL or path
 });
 
 const User = mongoose.model("User", userSchema);
