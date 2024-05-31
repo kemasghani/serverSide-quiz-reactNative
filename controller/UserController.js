@@ -212,25 +212,27 @@ exports.findUserById = async (req, res) => {
 
 const cloudinary = require("cloudinary").v2;
 
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
-});
+// cloudinary.config({
+//   cloud_name: process.env.CLOUD_NAME,
+//   api_key: process.env.API_KEY,
+//   api_secret: process.env.API_SECRET,
+// });
 
 exports.uploadAvatar = async (req, res) => {
   try {
     const userId = req.params.id;
-    const file = req.file;
-    console.log("userId", userId);
 
-    // Upload image to Cloudinary
-    const result = await cloudinary.uploader.upload(file.path);
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    // Cloudinary URL
+    const avatarUrl = req.file.path;
 
     // Update user's avatar field with Cloudinary URL
     const user = await User.findByIdAndUpdate(
       userId,
-      { avatar: result.secure_url },
+      { avatar: avatarUrl },
       { new: true }
     );
 
