@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const User = require("../models/user");
+const Grade = require("../models/grade");
 
 // Login user
 exports.loginUser = async (req, res) => {
@@ -60,6 +61,47 @@ exports.findAllUsers = async (req, res) => {
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ error: "Error fetching users" });
+  }
+};
+
+// Controller to get total points based on userId
+exports.getTotalPointsByUserId = async (req, res) => {
+  try {
+    // Fetch all grades and populate user details
+    const grades = await Grade.find({}).populate("userId", "username avatar");
+
+    // Use a map to store total points and user details per userId
+    const pointsMap = new Map();
+
+    grades.forEach((grade) => {
+      // Ensure userId is populated
+      if (grade.userId) {
+        const userId = grade.userId._id.toString(); // Convert ObjectId to string
+        const username = grade.userId.username;
+        const avatar = grade.userId.avatar;
+        const points = grade.points;
+
+        if (pointsMap.has(userId)) {
+          const userData = pointsMap.get(userId);
+          userData.totalPoints += points;
+          pointsMap.set(userId, userData);
+        } else {
+          pointsMap.set(userId, { username, avatar, totalPoints: points });
+        }
+      }
+    });
+
+    // Convert map to array of objects and sort by totalPoints descending
+    const result = Array.from(pointsMap, ([userId, userData]) => ({
+      userId,
+      username: userData.username,
+      avatar: userData.avatar,
+      totalPoints: userData.totalPoints,
+    })).sort((a, b) => b.totalPoints - a.totalPoints);
+
+    res.json(result); // Send the response in JSON format
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 };
 
