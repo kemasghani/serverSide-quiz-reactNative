@@ -1,22 +1,7 @@
-// const multer = require("multer");
-
-// // Multer configuration
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "uploads/"); // Directory to save the uploaded files
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, `${Date.now()}-${file.originalname}`); // File naming convention
-//   },
-// });
-
-// const upload = multer({ storage });
-
-// module.exports = upload;
-
 const multer = require("multer");
 const cloudinary = require("cloudinary").v2;
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const streamifier = require("streamifier");
+const sharp = require("sharp");
 
 // Configure Cloudinary
 cloudinary.config({
@@ -25,16 +10,46 @@ cloudinary.config({
   api_secret: process.env.API_SECRET,
 });
 
-// Configure multer-storage-cloudinary
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: "avatars", // folder name in your Cloudinary account
-    format: async (req, file) => "jpeg", // supports promises as well
-    public_id: (req, file) => Date.now() + "-" + file.originalname,
-  },
-});
-
+// Set up multer for temporary file storage before processing
+const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-module.exports = upload;
+// Middleware to process and upload image
+const processAndUploadImage = async (req, res, next) => {
+  if (!req.file) {
+    return next();
+  }
+
+  try {
+    // Process the image using sharp
+    const processedImageBuffer = await sharp(req.file.buffer)
+      .resize(100, 100) // Example resize, adjust dimensions as needed
+      .jpeg({ quality: 40 }) // Example format and quality settings
+      .toBuffer();
+
+    // Create a stream from the processed buffer
+    const uploadStream = (buffer) => {
+      return new Promise((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream({ folder: "avatars" }, (error, result) => {
+          if (result) {
+            resolve(result);
+          } else {
+            reject(error);
+          }
+        });
+        streamifier.createReadStream(buffer).pipe(stream);
+      });
+    };
+
+    // Upload processed image buffer to Cloudinary
+    const result = await uploadStream(processedImageBuffer);
+
+    // Attach Cloudinary response to request object
+    req.file.cloudinary = result;
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { upload, processAndUploadImage };

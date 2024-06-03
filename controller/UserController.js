@@ -264,12 +264,12 @@ exports.uploadAvatar = async (req, res) => {
   try {
     const userId = req.params.id;
 
-    if (!req.file) {
+    if (!req.file || !req.file.cloudinary) {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
     // Cloudinary URL
-    const avatarUrl = req.file.path;
+    const avatarUrl = req.file.cloudinary.secure_url;
 
     // Update user's avatar field with Cloudinary URL
     const user = await User.findByIdAndUpdate(
