@@ -67,26 +67,34 @@ exports.findAllUsers = async (req, res) => {
 // Controller to get total points based on userId
 exports.getTotalPointsByUserId = async (req, res) => {
   try {
+    // Fetch all users
+    const users = await User.find({}, "_id username avatar");
+
     // Fetch all grades and populate user details
     const grades = await Grade.find({}).populate("userId", "username avatar");
 
     // Use a map to store total points and user details per userId
     const pointsMap = new Map();
 
+    // Initialize map with all users
+    users.forEach((user) => {
+      pointsMap.set(user._id.toString(), {
+        username: user.username,
+        avatar: user.avatar,
+        totalPoints: 0,
+      });
+    });
+
+    // Accumulate points for users with grades
     grades.forEach((grade) => {
-      // Ensure userId is populated
       if (grade.userId) {
         const userId = grade.userId._id.toString(); // Convert ObjectId to string
-        const username = grade.userId.username;
-        const avatar = grade.userId.avatar;
         const points = grade.points;
 
         if (pointsMap.has(userId)) {
           const userData = pointsMap.get(userId);
           userData.totalPoints += points;
           pointsMap.set(userId, userData);
-        } else {
-          pointsMap.set(userId, { username, avatar, totalPoints: points });
         }
       }
     });
